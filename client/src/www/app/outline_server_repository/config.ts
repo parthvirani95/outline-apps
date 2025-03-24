@@ -27,10 +27,7 @@ export type ServiceConfig = StaticServiceConfig | DynamicServiceConfig;
  * It's the structured representation of a Static Access Key.
  */
 export class StaticServiceConfig {
-  constructor(
-    readonly name: string,
-    readonly tunnelConfig: TunnelConfigJson
-  ) {}
+  constructor(readonly name: string, readonly tunnelConfig: TunnelConfigJson) {}
 }
 
 /**
@@ -38,10 +35,7 @@ export class StaticServiceConfig {
  * It's the structured representation of a Dynamic Access Key.
  */
 export class DynamicServiceConfig {
-  constructor(
-    readonly name: string,
-    readonly transportConfigLocation: URL
-  ) {}
+  constructor(readonly name: string, readonly transportConfigLocation: URL) {}
 }
 
 /**
@@ -74,8 +68,12 @@ export async function parseAccessKey(
   accessKeyText: string
 ): Promise<ServiceConfig> {
   try {
+    console.log(accessKeyText);
     const accessKeyUrl = new URL(accessKeyText.trim());
+    console.log(accessKeyUrl);
 
+    // ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpteThtVlcweU1maDcyR1c5emozUHNk@54.241.179.3:54339/?outline=1
+    
     // The default service name is extracted from the URL fragment of the access key.
     const name = serviceNameFromAccessKey(accessKeyUrl);
     // The hash only encodes service config, not tunnel config or config location.
