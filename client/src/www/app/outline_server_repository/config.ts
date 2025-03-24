@@ -73,7 +73,7 @@ export async function parseAccessKey(
     console.log(accessKeyUrl);
 
     // ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpteThtVlcweU1maDcyR1c5emozUHNk@54.241.179.3:54339/?outline=1
-    
+
     // The default service name is extracted from the URL fragment of the access key.
     const name = serviceNameFromAccessKey(accessKeyUrl);
     // The hash only encodes service config, not tunnel config or config location.
@@ -82,6 +82,12 @@ export async function parseAccessKey(
 
     // Static ss:// keys. It encodes the full service config.
     if (noHashAccessKey.protocol === 'ss:') {
+      console.log(
+        new StaticServiceConfig(
+          name,
+          await parseTunnelConfig(noHashAccessKey.toString())
+        )
+      );
       return new StaticServiceConfig(
         name,
         await parseTunnelConfig(noHashAccessKey.toString())
