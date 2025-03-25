@@ -82,6 +82,8 @@ export async function parseAccessKey(
 
     // Static ss:// keys. It encodes the full service config.
     if (noHashAccessKey.protocol === 'ss:') {
+      console.log(name);
+      console.log(noHashAccessKey.toString());
       console.log(
         new StaticServiceConfig(
           name,
@@ -112,6 +114,7 @@ export async function parseAccessKey(
 
     throw new TypeError('Access Key is not a ss:// or ssconf:// URL');
   } catch (e) {
+    console.log(e);
     throw new errors.InvalidServiceConfiguration('Invalid static access key.', {
       cause: e,
     });

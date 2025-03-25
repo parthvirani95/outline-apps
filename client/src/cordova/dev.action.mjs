@@ -97,7 +97,9 @@ export async function main(...givenParameters) {
   });
 
   server.listen(0, '127.0.0.1', async () => {
-    const websocketURL = `ws://${server.address().address}:${server.address().port}`;
+    const websocketURL = `ws://${server.address().address}:${
+      server.address().port
+    }`;
     console.log(`LiveReload server running at ${websocketURL}`);
 
     await makeReplacements([
@@ -128,7 +130,8 @@ export async function main(...givenParameters) {
       'Outline',
       '-workspace',
       path.join(getRootDir(), 'client/src/cordova/apple/macos.xcworkspace'),
-      `SYMROOT=${path.join(getRootDir(), OUTPUT_PATH)}`
+      `SYMROOT=${path.join(getRootDir(), OUTPUT_PATH)}`,
+      '-allowProvisioningUpdates'
     );
 
     await spawnStream(

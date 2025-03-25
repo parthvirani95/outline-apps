@@ -23,11 +23,11 @@ open ./client/src/cordova/apple/ios.xcworkspace
 For legacy **macOS**:
 
 ```sh
-npm run action client/src/cordova/setup macos 
+npm run action client/src/cordova/setup macos
 open ./client/src/cordova/apple/macos.xcworkspace
 ```
 
-> [!NOTE] 
+> [!NOTE]
 > Should you encounter issues with your build, there may be apple-specific dependencies that are out of date.
 > Run `npm run reset` and try again!
 
@@ -47,7 +47,7 @@ Apple is quite particular when it comes to making sure your app is properly sign
 
 1. Select the "Team" for your own account.
 1. Change the bundle identifier (e.g. `org.outline.ios.client`) to something unique.
-1. Remove the app group `group.org.getoutline.client`.
+1. Remove the app group `new.group.org.getoutline.client`.
 1. Do the same for the "VPN Extension" target.
 
 ## Running the App
@@ -55,6 +55,7 @@ Apple is quite particular when it comes to making sure your app is properly sign
 ### Specify the Run Destination
 
 For the **iOS** client, you have a few options:
+
 - Run on your macOS computer: **Product >> Destination >> My Mac (Mac Catalyst)**
 - Run on a simulator
   - This is helpful to test the UI, but the VPN doesn't work on simulators, so this option is not recommended.
@@ -108,16 +109,17 @@ In the Console app, select the **Action > Include Info Messages** manu, and set 
 > 💡 Tip: You can **save searches** in the MacOS Console app.
 
 For further debugging, you can include relevant messages from the Network Extension subsystem:
+
 ```sh
 log stream  --info --predicate 'senderImagePath contains "Outline.app" or (processImagePath contains "Outline.app" and subsystem contains "com.apple.networkextension")'
 ```
 
 To see past logs use `log show` and the `--last` flag.
 
-For details on Apple logging, see [Your Friend the System Log](https://developer.apple.com/forums/thread/705868/) and [Mac Logging and the log Command: A Guide for Apple Admins](https://blog.kandji.io/mac-logging-and-the-log-command-a-guide-for-apple-admins#:~:text=The%20log%20command%20is%20built,(Press%20q%20to%20exit.)).
-
+For details on Apple logging, see [Your Friend the System Log](https://developer.apple.com/forums/thread/705868/) and [Mac Logging and the log Command: A Guide for Apple Admins](<https://blog.kandji.io/mac-logging-and-the-log-command-a-guide-for-apple-admins#:~:text=The%20log%20command%20is%20built,(Press%20q%20to%20exit.)>).
 
 ## Debug the Vpn Extension
+
 The VpnExtension runs in a separate process and its output is not logged to the Xcode console. To view its log statements see the "Inspect Logs" section.
 
 XCode doesn't automatically attach to the VpnExtension because it's started on demand by the system.
@@ -139,10 +141,10 @@ Sometimes the app will refuse to connect, with a `VpnStartFailure` error:
 
 If that happens, there are some things you can try.
 
-
 #### Kill any leftover processes
 
 You can kill the app and extension with the [`pkill` command](https://man7.org/linux/man-pages/man1/pgrep.1.html):
+
 ```sh
 pkill -9 Outline VpnExtension
 ```
@@ -150,23 +152,24 @@ pkill -9 Outline VpnExtension
 Sometimes the processes will not die, even with `-9`. For the Outline process, you may need to kill its parent process, usually `debugserver`.
 
 You can check running processes with the [`pgrep` command](https://man7.org/linux/man-pages/man1/pgrep.1.html):
+
 ```sh
 pgrep Outline VpnExtension
 ```
-
 
 #### Ensure the right extension is being loaded
 
 The VpnExtension is an [application extension](https://developer.apple.com/library/content/documentation/General/Conceptual/ExtensibilityPG/) that handles the device’s traffic when the VPN is enabled. The system must be aware of the extension in order to invoke it. Normally, running the app is enough to trigger the registration of the VpnExtension. However, the system can get confused in a development environment, failing to register the plugin automatically, or using the extension from the production app, if you have it installed, or from a different build.
 
 In your terminal, use the `pluginkit` command to inspect the registered plugins:
+
 ```sh
 pluginkit -mvA | grep outline
 ```
 
-You should see an for the VpnExtension in your Xcode project, where the version and binary location match.  This should output something similar to:
+You should see an for the VpnExtension in your Xcode project, where the version and binary location match. This should output something similar to:
 
-`org.outline.macos.client.VpnExtension(0.0.0-dev)   508D6616-9FCB-4302-B00F-22121C236AAC    2023-07-14 00:05:34 +0000       /Users/$USER/Library/Developer/Xcode/DerivedData/macos-bnidlwvulcdazjfxleynwzkychqi/Build/Products/Debug/Outline.app/Contents/PlugIns/VpnExtension.appex`
+`new.org.outline.macos.client.VpnExtension(0.0.0-dev)   508D6616-9FCB-4302-B00F-22121C236AAC    2023-07-14 00:05:34 +0000       /Users/$USER/Library/Developer/Xcode/DerivedData/macos-bnidlwvulcdazjfxleynwzkychqi/Build/Products/Debug/Outline.app/Contents/PlugIns/VpnExtension.appex`
 
 Note how `VpnExtension.appex` is inside `Outline.app/`.
 
@@ -183,8 +186,8 @@ Where the `$APP_EXTENSION_PATH` is the location of the `VpnExtension.appex` file
 If your extenstion is still not loading, you can try to force register it:
 
 1. Determine the VpnExtension path
-  1. In XCode, go to **Product > Show Build Folder in Finder**. That will open the `Build/` folder.
-  1. The VpnExtension will be at `Build/Products/Debug/Outline.app/Contents/PlugIns/VpnExtension.appex`
+1. In XCode, go to **Product > Show Build Folder in Finder**. That will open the `Build/` folder.
+1. The VpnExtension will be at `Build/Products/Debug/Outline.app/Contents/PlugIns/VpnExtension.appex`
 1. Run `run pluginkit -a <your appex file>`, e.g. `pluginkit -a /Users/$USER/Library/Developer/Xcode/DerivedData/macos-bnidlwvulcdazjfxleynwzkychqi/Build/Products/Debug/Outline.app/Contents/PlugIns/VpnExtension.appex`
 
 You may need to run the `lsregister` garbage collector to make sure old entries
@@ -197,10 +200,11 @@ in the Launch Services database are cleared:
 #### Delete the existing VPN configuration
 
 You may want to also delete the VPN configurations:
+
 1. Open the System Settings
-1. Go to *VPN*
+1. Go to _VPN_
 1. Press the Info button for the Outline service
-1. Press *Remove Configuration…* and confirm
+1. Press _Remove Configuration…_ and confirm
 
 #### Restart
 
@@ -211,7 +215,7 @@ If all fails, restart your device. That usually takes care of the issue.
 To debug the webview:
 
 1. You may need to enable the Develop menu first, by selecting **Settings > Advanced > Show Develop menu** in menu bar
-1. In your terminal, run `defaults write org.outline.osx.client WebKitDeveloperExtras -bool true`.  This is only needed once, to make the Outline webview debuggable.  You may need to re-run the whole Outline app (use Cmd+R).
+1. In your terminal, run `defaults write org.outline.osx.client WebKitDeveloperExtras -bool true`. This is only needed once, to make the Outline webview debuggable. You may need to re-run the whole Outline app (use Cmd+R).
 1. In the Outline Client app, right click → Inspect Context. This will open the Safari debugger
 
 To reload the UI without re-running the application, right-click → Reload.

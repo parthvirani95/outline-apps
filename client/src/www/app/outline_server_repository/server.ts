@@ -92,6 +92,12 @@ class OutlineServer implements Server {
       );
     }
 
+    console.log(`id : ${this.id.toString()}`);
+    console.log(`name : ${this.name.toString()}`);
+    console.log(`config : ${this.tunnelConfig.toString()}`);
+    console.log(`tunnelConfig 1 : ${this.tunnelConfig!.firstHop.toString()}`);
+    console.log(`tunnelConfig 2 : ${this.tunnelConfig!.transport.toString()}`);
+
     try {
       const request: StartRequestJson = {
         id: this.id,

@@ -543,6 +543,7 @@ export class App {
       );
       this.maybeShowAutoConnectDialog();
     } catch (e) {
+      console.log(`ERRORERRORERRORERROR Log ${e}`);
       this.updateServerListItem(serverId, {
         connectionState: ServerConnectionState.DISCONNECTED,
       });
