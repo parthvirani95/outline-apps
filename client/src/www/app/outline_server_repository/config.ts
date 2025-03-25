@@ -61,6 +61,8 @@ export async function parseTunnelConfig(
   const config = await methodChannel
     .getDefaultMethodChannel()
     .invokeMethod('ParseTunnelConfig', tunnelConfigText);
+  console.log(`configconfigconfigconfigconfigconfig : ${tunnelConfigText}`);
+  console.log(`configconfigconfigconfigconfigconfig : ${config}`);
   return JSON.parse(config);
 }
 
