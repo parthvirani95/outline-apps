@@ -453,7 +453,8 @@ public class VpnTunnelService extends VpnService {
   private void broadcastVpnConnectivityChange(TunnelStatus status) {
     this.tunnelStore.setTunnelStatus(status);
     QuickSettingsTileService.requestTileUpdate(this);
-    if (tunnelConfig == null) {
+    final TunnelConfig config = this.tunnelConfig;
+    if (config == null) {
       LOG.warning("Tunnel disconnected, not sending VPN connectivity broadcast");
       return;
     }
@@ -462,7 +463,7 @@ public class VpnTunnelService extends VpnService {
     // We must explicitly set the package for security reasons: https://developer.android.com/about/versions/14/behavior-changes-14#security
     statusChange.setPackage(this.getPackageName());
     statusChange.putExtra(MessageData.PAYLOAD.value, status.value);
-    statusChange.putExtra(MessageData.TUNNEL_ID.value, tunnelConfig.id);
+    statusChange.putExtra(MessageData.TUNNEL_ID.value, config.id);
     sendBroadcast(statusChange);
   }
 
