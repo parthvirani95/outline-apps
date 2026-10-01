@@ -62,9 +62,16 @@ export class GoVpnTunnel implements VpnTunnel {
 
   private reconnectedListener?: () => void;
 
+  // True while a system suspend is in progress; prevents queued restarts from
+  // launching tun2socks while the TAP device is unavailable (Windows only).
+  private suspended = false;
+
   // Serializes concurrent calls to updateUdpAndRestartTun2socks so that only
   // one stop/restart cycle runs at a time (prevents double-launch of tun2socks).
   private pendingRestartTun2socks: Promise<void> = Promise.resolve();
+  // True when a restart is already queued but not yet running. Used to coalesce
+  // rapid network-change events so only one extra restart is ever pending.
+  private hasPendingRestart = false;
 
   constructor(
     private readonly routing: RoutingDaemon,
@@ -155,12 +162,14 @@ export class GoVpnTunnel implements VpnTunnel {
   }
 
   private async suspendListener() {
+    this.suspended = true;
     // Preemptively stop tun2socks to avoid a silent restart that will fail.
     await this.tun2socks.stop();
     console.log('stopped tun2socks in preparation for suspend');
   }
 
   private async resumeListener() {
+    this.suspended = false;
     if (this.disconnected) {
       // NOTE: Cannot remove resume listeners - Electron bug?
       console.error(
@@ -186,19 +195,34 @@ export class GoVpnTunnel implements VpnTunnel {
   }
 
   // Serializes calls so that only one stop/restart cycle runs at a time.
-  // Concurrent callers (networkChanged and resumeListener) are queued behind
-  // any in-flight restart, preventing double-launch of tun2socks.
+  // If a restart is already queued but not yet running, coalesces subsequent
+  // calls into it — so rapid network changes don't pile up redundant restarts.
+  // Returns a promise that rejects if the restart itself fails.
   private updateUdpAndRestartTun2socks(): Promise<void> {
-    this.pendingRestartTun2socks = this.pendingRestartTun2socks
-      .then(() => this.doUpdateUdpAndRestartTun2socks())
-      .catch(() => {
-        // Prevent a failed restart from poisoning the chain and blocking
-        // future calls. Errors are already logged inside the inner method.
-      });
-    return this.pendingRestartTun2socks;
+    if (this.hasPendingRestart) {
+      // A restart is already waiting; coalesce this call into it.
+      // It will run with the latest field values (gatewayAdapterIndex, etc.)
+      // when it eventually executes.
+      return this.pendingRestartTun2socks;
+    }
+    this.hasPendingRestart = true;
+    const next = this.pendingRestartTun2socks.then(() => {
+      this.hasPendingRestart = false;
+      return this.doUpdateUdpAndRestartTun2socks();
+    });
+    // Store a version that always resolves so the chain stays usable even if
+    // this restart fails, without hiding the failure from the caller (next).
+    this.pendingRestartTun2socks = next.catch(() => {});
+    return next;
   }
 
   private async doUpdateUdpAndRestartTun2socks() {
+    // Skip if the tunnel was disconnected or suspended since this call was
+    // queued; tun2socks must not be launched in either state.
+    if (this.disconnected || this.suspended) {
+      return;
+    }
+
     try {
       if (IS_WINDOWS) {
         this.isUdpEnabled = await checkUDPConnectivityWindows(
@@ -215,6 +239,12 @@ export class GoVpnTunnel implements VpnTunnel {
       console.log(`UDP support now ${this.isUdpEnabled}`);
     } catch (e) {
       console.error('connectivity check failed:', e);
+    }
+
+    // Re-check after the async UDP check; the system state may have changed
+    // while we were waiting (e.g. disconnect or suspend occurred).
+    if (this.disconnected || this.suspended) {
+      return;
     }
 
     // Restart tun2socks.
