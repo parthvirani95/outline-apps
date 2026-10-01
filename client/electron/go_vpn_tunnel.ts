@@ -62,6 +62,10 @@ export class GoVpnTunnel implements VpnTunnel {
 
   private reconnectedListener?: () => void;
 
+  // Serializes concurrent calls to updateUdpAndRestartTun2socks so that only
+  // one stop/restart cycle runs at a time (prevents double-launch of tun2socks).
+  private pendingRestartTun2socks: Promise<void> = Promise.resolve();
+
   constructor(
     private readonly routing: RoutingDaemon,
     readonly keyId: string,
@@ -181,7 +185,20 @@ export class GoVpnTunnel implements VpnTunnel {
     }
   }
 
-  private async updateUdpAndRestartTun2socks() {
+  // Serializes calls so that only one stop/restart cycle runs at a time.
+  // Concurrent callers (networkChanged and resumeListener) are queued behind
+  // any in-flight restart, preventing double-launch of tun2socks.
+  private updateUdpAndRestartTun2socks(): Promise<void> {
+    this.pendingRestartTun2socks = this.pendingRestartTun2socks
+      .then(() => this.doUpdateUdpAndRestartTun2socks())
+      .catch(() => {
+        // Prevent a failed restart from poisoning the chain and blocking
+        // future calls. Errors are already logged inside the inner method.
+      });
+    return this.pendingRestartTun2socks;
+  }
+
+  private async doUpdateUdpAndRestartTun2socks() {
     try {
       if (IS_WINDOWS) {
         this.isUdpEnabled = await checkUDPConnectivityWindows(
