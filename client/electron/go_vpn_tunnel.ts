@@ -211,7 +211,10 @@ export class GoVpnTunnel implements VpnTunnel {
             // pending, try again; otherwise surface the failure to the caller.
             lastError = e;
             if (this.restartPending) {
-              console.error('tun2socks restart failed; retrying pending restart:', e);
+              console.error(
+                'tun2socks restart failed; retrying pending restart:',
+                e
+              );
             }
           }
         } while (this.restartPending);
