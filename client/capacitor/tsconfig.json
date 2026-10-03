@@ -11,7 +11,6 @@
     "src",
     "plugins/capacitor-plugin-outline/src",
     "webpack.config.js",
-    "build.action.mjs",
     "web_build.action.mjs",
     "start.action.mjs"
   ],

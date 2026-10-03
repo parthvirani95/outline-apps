@@ -9,6 +9,7 @@ The Outline monorepo is organized into three main components:
 *   `/client`: The Outline Client application, available on all major platforms. See [`client/AGENTS.md`](client/AGENTS.md).
 *   `/server_manager`: A graphical application to create and manage Outline Servers. See [`server_manager/AGENTS.md`](server_manager/AGENTS.md).
 *   `/infrastructure`: The build system and shared TypeScript utilities. See [`infrastructure/AGENTS.md`](infrastructure/AGENTS.md).
+*   `/flutter_outline`: The Flutter app that embeds the Outline VPN SDK. Before working there, read [`flutter_outline/PROJECT.md`](flutter_outline/PROJECT.md) and [`flutter_outline/AGENTS.md`](flutter_outline/AGENTS.md). Update `PROJECT.md` in the same change when behavior, the channel contract, routing, bundle ids, the browser, or the native `tun2socks` build changes.
 
 ## The `npm run action` Command
 

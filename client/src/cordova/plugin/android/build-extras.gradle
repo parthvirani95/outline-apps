@@ -63,6 +63,5 @@ repositories {
 dependencies {
   // From --include-build.
   implementation 'org.outline:outline:0.0'
-  // From local Maven directory.
-  implementation 'org.getoutline.client:tun2socks:0.0.1'
+  implementation files(layout.settingsDirectory.file("../../../output/client/android/tun2socks.aar"))
 }

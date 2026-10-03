@@ -55,8 +55,7 @@ android {
 }
 
 dependencies {
-    // From our local maven repository directory.
-    implementation 'org.getoutline.client:tun2socks:0.0.1'
+    implementation files('../../../../../../output/client/android/tun2socks.aar')
 
     implementation 'io.sentry:sentry-android:8.28.0'
     implementation 'org.apache.commons:commons-collections4:4.4'

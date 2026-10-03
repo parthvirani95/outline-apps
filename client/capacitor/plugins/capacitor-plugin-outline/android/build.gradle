@@ -67,7 +67,7 @@ repositories {
 dependencies {
     implementation project(':capacitor-android')
     implementation project(':outline-lib')
-    implementation 'org.getoutline.client:tun2socks:0.0.1'
+    implementation files('../../../../../output/client/android/tun2socks.aar')
     implementation 'io.sentry:sentry-android:8.28.0'
     implementation "androidx.appcompat:appcompat:$rootProject.ext.androidxAppCompatVersion"
 }

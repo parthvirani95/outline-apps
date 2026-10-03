@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"net"
 	"os"
 	"path"
 	"runtime"
@@ -114,8 +113,7 @@ func (c *ClientConfig) new(keyID string, providerClientConfigText string) (*Clie
 	// Make a copy of the config so we can change it.
 	clientConfig := *c
 	if clientConfig.TransportParser == nil {
-		tcpDialer := &transport.TCPDialer{Dialer: net.Dialer{KeepAlive: -1}}
-		udpDialer := &transport.UDPDialer{}
+		tcpDialer, udpDialer := newDirectDialers()
 		clientConfig.TransportParser = configregistry.NewDefaultTransportProvider(tcpDialer, udpDialer)
 	}
 	if clientConfig.DataDir == "" {
