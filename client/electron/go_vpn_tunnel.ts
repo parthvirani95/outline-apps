@@ -197,13 +197,27 @@ export class GoVpnTunnel implements VpnTunnel {
     }
     this.restartInFlight = (async () => {
       try {
+        let lastError: unknown = undefined;
         do {
           this.restartPending = false;
           if (this.disconnected) {
             return;
           }
-          await this.doUpdateUdpAndRestartTun2socks();
+          try {
+            lastError = undefined;
+            await this.doUpdateUdpAndRestartTun2socks();
+          } catch (e) {
+            // Don't drop a restart requested while this attempt was running: if one is
+            // pending, try again; otherwise surface the failure to the caller.
+            lastError = e;
+            if (this.restartPending) {
+              console.error('tun2socks restart failed; retrying pending restart:', e);
+            }
+          }
         } while (this.restartPending);
+        if (lastError !== undefined) {
+          throw lastError;
+        }
       } finally {
         this.restartPending = false;
         this.restartInFlight = undefined;
