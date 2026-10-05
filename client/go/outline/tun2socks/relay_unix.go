@@ -47,18 +47,23 @@ func GoRelayTraffic(fd int, rd *RemoteDevice) *perrs.PlatformError {
 	}
 
 	rd.mu.Lock()
+	defer rd.mu.Unlock()
+	if rd.closed {
+		tun.Close()
+		return errRemoteDeviceClosed()
+	}
 	if rd.tun != nil {
 		if err := rd.tun.Close(); err != nil {
-			slog.Info("successfully closed an already existing tun device")
-		} else {
 			slog.Warn("failed to close an already existing tun device", "err", err)
+		} else {
+			slog.Info("successfully closed an already existing tun device")
 		}
 	}
 	rd.tun = tun
-	rd.mu.Unlock()
 
-	go vpn.RelayTraffic(rd.rd.ReadWriteCloser, tun)
-	go vpn.RelayTraffic(tun, rd.rd.ReadWriteCloser)
+	// Tracked so that RemoteDevice.Close can wait for them (defect N-1).
+	rd.goRelay(func() { vpn.RelayTraffic(rd.rd.ReadWriteCloser, tun) })
+	rd.goRelay(func() { vpn.RelayTraffic(tun, rd.rd.ReadWriteCloser) })
 
 	return nil
 }

@@ -24,6 +24,7 @@ import (
 	"localhost/client/go/outline/connectivity"
 	"localhost/client/go/outline/internal/redact"
 	perrs "localhost/client/go/outline/platerrors"
+	"golang.getoutline.org/sdk/network"
 	"golang.getoutline.org/sdk/network/lwip2transport"
 	"golang.getoutline.org/sdk/network/packetrelay"
 	"golang.getoutline.org/sdk/transport"
@@ -55,16 +56,21 @@ func ConnectRemoteDevice(ctx context.Context, sd transport.StreamDialer, pr pack
 
 	dev := &RemoteDevice{sd: sd, pr: pr}
 	dev.tcpCheckDone.Go(dev.checkTCPHealthAndUpdate)
-	dev.ReadWriteCloser, err = lwip2transport.ConfigureDeviceWithRelay(dev.sd, dev.pr)
+	ipDev, err := lwip2transport.ConfigureDeviceWithRelay(dev.sd, dev.pr)
 	if err != nil {
 		return nil, errSetupHandler("remote device failed to configure network stack", err)
 	}
+	dev.ReadWriteCloser = &onceCloseDevice{IPDevice: ipDev}
 	slog.Debug("remote device lwIP network stack configured")
 
 	return dev, nil
 }
 
 // Close closes the connection to the Outline server.
+//
+// It is safe to call Close more than once and from several goroutines (for
+// example the owner and a [RelayTraffic] goroutine that reached EOF): the lwIP
+// device is closed exactly once.
 func (dev *RemoteDevice) Close() (err error) {
 	if dev.ReadWriteCloser != nil {
 		err = dev.ReadWriteCloser.Close()
@@ -99,4 +105,36 @@ func errSetupHandler(msg string, cause error) error {
 		Message: msg,
 		Cause:   perrs.ToPlatformError(cause),
 	}
+}
+
+// onceCloseDevice wraps the outline-sdk lwIP device so that it is closed
+// exactly once.
+//
+// lwip2transport's Close checks and closes its done channel without a lock, so
+// two concurrent calls (the owner's Close and a RelayTraffic goroutine closing
+// its destination at EOF) can both get past the check: the second close of
+// the channel panics and the lwIP stack is closed twice, which frees the UDP
+// listener pcb twice (defect N-1). Concurrent callers of Close block until the
+// first call has finished and all get its result.
+type onceCloseDevice struct {
+	network.IPDevice
+
+	closeOnce sync.Once
+	closeErr  error
+}
+
+func (d *onceCloseDevice) Close() error {
+	d.closeOnce.Do(func() {
+		d.closeErr = d.IPDevice.Close()
+	})
+	return d.closeErr
+}
+
+// WriteTo implements [io.WriterTo] so that io.Copy keeps using the device's own
+// WriteTo (no intermediate buffer), as it did before the device was wrapped.
+func (d *onceCloseDevice) WriteTo(w io.Writer) (int64, error) {
+	if wt, ok := d.IPDevice.(io.WriterTo); ok {
+		return wt.WriteTo(w)
+	}
+	return io.Copy(w, struct{ io.Reader }{d.IPDevice})
 }

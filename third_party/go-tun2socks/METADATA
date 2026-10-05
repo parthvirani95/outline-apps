@@ -1,0 +1,16 @@
+name: "go-tun2socks"
+description: "tun2socks library with an embedded lwIP stack (Go + C). Patched copy, see PATCHES.md."
+
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "https://github.com/eycorsican/go-tun2socks"
+  }
+  url {
+    type: GIT
+    value: "https://github.com/eycorsican/go-tun2socks"
+  }
+  version: "v1.16.11"
+  last_upgrade_date { year: 2026 month: 10 day: 05 }
+  local_modifications: "Fix lwIP UDP listener use-after-free on stack restart (defect N-1). See PATCHES.md."
+}

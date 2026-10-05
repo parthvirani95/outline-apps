@@ -90,3 +90,7 @@ tool (
 	github.com/google/addlicense
 	github.com/google/go-licenses/v2
 )
+
+// Patched copy of go-tun2socks v1.16.11 (lwIP UDP use-after-free fix, defect N-1).
+// See third_party/go-tun2socks/PATCHES.md.
+replace github.com/eycorsican/go-tun2socks => ./third_party/go-tun2socks
