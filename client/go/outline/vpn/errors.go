@@ -17,11 +17,12 @@ package vpn
 import (
 	"log/slog"
 
+	"localhost/client/go/outline/internal/redact"
 	perrs "localhost/client/go/outline/platerrors"
 )
 
 func errCancelled(cause error) error {
-	slog.Warn("operation was cancelled", "cause", cause)
+	slog.Warn("operation was cancelled", "cause", redact.Err(cause))
 	return perrs.PlatformError{
 		Code:  perrs.OperationCanceled,
 		Cause: perrs.ToPlatformError(cause),
@@ -41,7 +42,7 @@ func errCloseVPN(msg string, cause error, params ...any) error {
 }
 
 func errPlatError(code perrs.ErrorCode, msg string, cause error, params ...any) error {
-	logParams := append(params, "err", cause)
+	logParams := append(params, "err", redact.Err(cause))
 	slog.Error(msg, logParams...)
 
 	details := perrs.ErrorDetails{}

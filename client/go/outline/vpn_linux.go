@@ -24,6 +24,7 @@ import (
 
 	"localhost/client/go/outline/callback"
 	"localhost/client/go/outline/configregistry"
+	"localhost/client/go/outline/internal/redact"
 	perrs "localhost/client/go/outline/platerrors"
 	"localhost/client/go/outline/vpn"
 )
@@ -80,7 +81,7 @@ func (api *vpnAPI) Establish(configStr string) (err error) {
 	defer func() {
 		if err != nil {
 			if err := client.EndSession(); err != nil {
-				slog.Warn("failed to end backend client session", "err", err)
+				slog.Warn("failed to end backend client session", "err", redact.Err(err))
 			}
 		}
 	}()

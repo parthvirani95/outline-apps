@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"localhost/client/go/outline/callback"
+	"localhost/client/go/outline/internal/redact"
 	"golang.getoutline.org/sdk/network/packetrelay"
 	"golang.getoutline.org/sdk/transport"
 )
@@ -143,11 +144,11 @@ func EstablishVPN(
 	}()
 
 	if c.proxy, err = ConnectRemoteDevice(ctx, sd, pr); err != nil {
-		slog.Error("failed to connect to the remote device", "err", err)
+		slog.Error("failed to connect to the remote device", "err", redact.Err(err))
 		return
 	}
 	if err = c.proxy.GetHealthStatus(); err != nil {
-		slog.Error("remote device is not healthy", "err", err)
+		slog.Error("remote device is not healthy", "err", redact.Err(err))
 		return
 	}
 	slog.Info("connected to the remote device")

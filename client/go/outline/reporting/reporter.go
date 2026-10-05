@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"time"
 
+	"localhost/client/go/outline/internal/redact"
 	"localhost/client/go/outline/useragent"
 )
 
@@ -60,7 +61,7 @@ func (r *HTTPReporter) Run(sessionCtx context.Context) {
 func (r *HTTPReporter) reportAndLogError() {
 	err := r.Report()
 	if err != nil {
-		slog.Warn("Failed to report", "err", err)
+		slog.Warn("Failed to report", "err", redact.Err(err))
 	}
 }
 

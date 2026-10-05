@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"localhost/client/go/outline"
+	"localhost/client/go/outline/internal/redact"
 	perrs "localhost/client/go/outline/platerrors"
 	"localhost/client/go/outline/vpn"
 )
@@ -56,7 +57,7 @@ func ConnectRemoteDevice(client *outline.Client) (res *ConnectRemoteDeviceResult
 	defer func() {
 		if res.Error != nil {
 			if err := client.EndSession(); err != nil {
-				slog.Warn("failed to end backend Client session", "err", err)
+				slog.Warn("failed to end backend Client session", "err", redact.Err(err))
 			}
 		}
 	}()
@@ -85,7 +86,7 @@ func (d *RemoteDevice) NotifyNetworkChanged() {
 func (d *RemoteDevice) Close() *perrs.PlatformError {
 	defer func() {
 		if err := d.client.EndSession(); err != nil {
-			slog.Warn("failed to end backend Client session", "err", err)
+			slog.Warn("failed to end backend Client session", "err", redact.Err(err))
 		}
 	}()
 	var err error = nil

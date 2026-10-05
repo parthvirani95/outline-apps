@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"localhost/client/go/outline/connectivity"
+	"localhost/client/go/outline/internal/redact"
 
 	"golang.getoutline.org/sdk/network/dnsintercept"
 	"golang.getoutline.org/sdk/network/dnstruncate"
@@ -92,7 +93,7 @@ func wrapTransportPairWithOutlineDNS(sd *Dialer[transport.StreamConn], pl *Packe
 				slog.Info("remote device UDP is healthy")
 				relayMain.SetRelay(relayForward)
 			} else {
-				slog.Warn("remote device UDP is not healthy", "err", err)
+				slog.Warn("remote device UDP is not healthy", "err", redact.Err(err))
 				relayMain.SetRelay(relayTrunc)
 			}
 		}()

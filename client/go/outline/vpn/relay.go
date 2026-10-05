@@ -18,6 +18,8 @@ import (
 	"io"
 	"log/slog"
 	"math/rand"
+
+	"localhost/client/go/outline/internal/redact"
 )
 
 // RelayTraffic copies data from `src` to `dst` until an error occurs.
@@ -28,6 +30,6 @@ func RelayTraffic(dst io.WriteCloser, src io.Reader) {
 	id := rand.Intn(1000) // A fake gorotuine ID for logging
 	slog.Debug("relaying traffic ...", "#", id)
 	n, err := io.Copy(dst, src)
-	slog.Debug("relaying traffic done", "#", id, "n", n, "err", err)
+	slog.Debug("relaying traffic done", "#", id, "n", n, "err", redact.Err(err))
 	dst.Close()
 }

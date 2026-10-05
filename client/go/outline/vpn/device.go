@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"localhost/client/go/outline/connectivity"
+	"localhost/client/go/outline/internal/redact"
 	perrs "localhost/client/go/outline/platerrors"
 	"golang.getoutline.org/sdk/network/lwip2transport"
 	"golang.getoutline.org/sdk/network/packetrelay"
@@ -87,12 +88,12 @@ func (d *RemoteDevice) checkTCPHealthAndUpdate() {
 	if d.tcpErr = err; d.tcpErr == nil {
 		slog.Info("remote device TCP is healthy")
 	} else {
-		slog.Warn("remote device TCP is not healthy", "err", d.tcpErr)
+		slog.Warn("remote device TCP is not healthy", "err", redact.Err(d.tcpErr))
 	}
 }
 
 func errSetupHandler(msg string, cause error) error {
-	slog.Error(msg, "err", cause)
+	slog.Error(msg, "err", redact.Err(cause))
 	return perrs.PlatformError{
 		Code:    perrs.SetupTrafficHandlerFailed,
 		Message: msg,
