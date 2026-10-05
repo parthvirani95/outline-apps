@@ -76,6 +76,13 @@ func makeTunFile(fd int) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Put the copy in non-blocking mode so that os.NewFile returns a pollable
+	// file. Otherwise a pending Read blocks in the kernel and Close does not
+	// interrupt it, which keeps the TUN device alive after a disconnect.
+	if err := unix.SetNonblock(newfd, true); err != nil {
+		unix.Close(newfd)
+		return nil, err
+	}
 	file := os.NewFile(uintptr(newfd), "")
 	if file == nil {
 		return nil, errors.New("failed to open TUN file descriptor")

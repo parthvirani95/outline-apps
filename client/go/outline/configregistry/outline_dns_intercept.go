@@ -31,11 +31,12 @@ import (
 )
 
 // A list of public DNS resolvers that the VPN can use.
+//
+// OpenDNS is intentionally not included: it answers REFUSED to queries from
+// some regions (e.g. France), which breaks DNS for the whole VPN session.
 var outlineDNSResolvers = []netip.AddrPort{
-	netip.MustParseAddrPort("1.1.1.1:53"),        // Cloudflare
-	netip.MustParseAddrPort("9.9.9.9:53"),        // Quad9
-	netip.MustParseAddrPort("208.67.222.222:53"), // OpenDNS
-	netip.MustParseAddrPort("208.67.220.220:53"), // OpenDNS
+	netip.MustParseAddrPort("1.1.1.1:53"), // Cloudflare
+	netip.MustParseAddrPort("9.9.9.9:53"), // Quad9
 }
 
 // A hard-coded link-local address for DNS interception.
